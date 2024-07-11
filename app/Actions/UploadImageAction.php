@@ -9,7 +9,7 @@ class UploadImageAction
 {
     public function __invoke(Request $request): string
     {
-        $fileName = Str::random().'.'.$request->image->getClientOriginalExtension();
+        $fileName = Str::random() . '.' . $request->image->getClientOriginalExtension();
         $request->image->storeAs('images', $fileName);
 
         return $fileName;

@@ -12,15 +12,17 @@ use App\DataTables\EventDataTable;
 use App\Http\Requests\EventStoreRequest;
 use App\Http\Requests\EventUpdateRequest;
 use App\Models\Event;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class EventController extends Controller
 {
-    public function index(EventDataTable $dataTable)
+    public function index(EventDataTable $dataTable): EventDataTable
     {
         return $dataTable->render('event.list');
     }
 
-    public function create(VenueGetAllAction $venueAll)
+    public function create(VenueGetAllAction $venueAll): View
     {
         return view('event.form', [
             'event' => null,
@@ -28,18 +30,13 @@ class EventController extends Controller
         ]);
     }
 
-    public function store(EventStoreRequest $request, EventStoreAction $action, UploadImageAction $uploadImage)
+    public function store(EventStoreRequest $request, EventStoreAction $action, UploadImageAction $uploadImage): RedirectResponse
     {
         $action($request, $uploadImage);
         return redirect(route('event.index'));
     }
 
-    public function show(Event $event)
-    {
-        //
-    }
-
-    public function edit(Event $event, VenueGetAllAction $venueAll)
+    public function edit(Event $event, VenueGetAllAction $venueAll): View
     {
         return view('event.form', [
             'event' => $event,
@@ -47,16 +44,15 @@ class EventController extends Controller
         ]);
     }
 
-    public function update(EventUpdateRequest $request, Event $event, EventUpdateAction $eventUpdate, UploadImageAction $uploadImage)
+    public function update(EventUpdateRequest $request, Event $event, EventUpdateAction $eventUpdate, UploadImageAction $uploadImage): RedirectResponse
     {
         $eventUpdate($request, $event, $uploadImage);
         return redirect(route('event.index'));
     }
 
-    public function destroy(Event $event, EventDestroyAction $eventDestroy, DestroyImageAction $destroyImage)
+    public function destroy(Event $event, EventDestroyAction $eventDestroy, DestroyImageAction $destroyImage): RedirectResponse
     {
-        $destroyImage($event->image);
-        $eventDestroy($event);
+        $eventDestroy($event, $destroyImage);
         return redirect(route('event.index'));
     }
 }
