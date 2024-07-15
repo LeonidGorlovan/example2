@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * @property int id
@@ -35,5 +36,12 @@ class Event extends Model
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);
+    }
+
+    protected function eventDate(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => Carbon::parse($value)->format('Y-m-d'),
+        );
     }
 }

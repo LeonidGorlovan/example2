@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Venue\VenueDestroyAction;
-use App\Actions\Venue\VenueStoreAction;
-use App\Actions\Venue\VenueUpdateAction;
 use App\DataTables\VenueDataTable;
 use App\Http\Requests\VenueRequest;
-use App\Models\Venue;
+use App\Services\VenueService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class VenueController extends Controller
 {
+    private VenueService $venueService;
+
+    public function __construct(VenueService $venueService)
+    {
+        $this->venueService = $venueService;
+    }
+
     public function index(VenueDataTable $dataTable): VenueDataTable
     {
         return $dataTable->render('venue.list');
@@ -25,26 +29,27 @@ class VenueController extends Controller
         ]);
     }
 
-    public function store(VenueRequest $request, VenueStoreAction $storeAction): RedirectResponse
+    public function store(VenueRequest $request): RedirectResponse
     {
-        $storeAction($request);
+        $this->venueService->store($request->validated());
         return redirect(route('venue.index'));
     }
 
-    public function edit(Venue $venue): View
+    public function edit(int $id): View
     {
+        $venue = $this->venueService->one($id);
         return view('venue.form', compact('venue'));
     }
 
-    public function update(VenueRequest $request, Venue $venue, VenueUpdateAction $updateAction): RedirectResponse
+    public function update(VenueRequest $request, int $id): RedirectResponse
     {
-        $updateAction($venue, $request);
+        $this->venueService->update($request->validated(), $id);
         return redirect(route('venue.index'));
     }
 
-    public function destroy(Venue $venue, VenueDestroyAction $destroyAction): RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
-        $destroyAction($venue);
+        $this->venueService->destroy($id);
         return redirect(route('venue.index'));
     }
 }

@@ -2,22 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\DestroyImageAction;
-use App\Actions\Event\EventDestroyAction;
-use App\Actions\Event\EventStoreAction;
-use App\Actions\Event\EventUpdateAction;
-use App\Actions\UploadImageAction;
 use App\Actions\Venue\VenueGetAllAction;
 use App\DataTables\EventDataTable;
 use App\Http\Requests\EventStoreRequest;
 use App\Http\Requests\EventUpdateRequest;
 use App\Models\Event;
+use App\Services\EventService;
+use App\Services\ImageRequestService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class EventController extends Controller
 {
-    public function index(EventDataTable $dataTable): EventDataTable
+    private EventService $eventService;
+    private ImageRequestService $imageRequestService;
+
+    public function __construct(EventService $eventService, ImageRequestService $imageRequestService)
+    {
+        $this->eventService = $eventService;
+        $this->imageRequestService = $imageRequestService;
+    }
+
+    public function index(EventDataTable $dataTable)
     {
         return $dataTable->render('event.list');
     }
@@ -30,9 +36,10 @@ class EventController extends Controller
         ]);
     }
 
-    public function store(EventStoreRequest $request, EventStoreAction $action, UploadImageAction $uploadImage): RedirectResponse
+    public function store(EventStoreRequest $request): RedirectResponse
     {
-        $action($request, $uploadImage);
+        $nameImg = $this->imageRequestService->upload($request->image);
+        $this->eventService->store($request->validated(), $nameImg);
         return redirect(route('event.index'));
     }
 
@@ -44,15 +51,18 @@ class EventController extends Controller
         ]);
     }
 
-    public function update(EventUpdateRequest $request, Event $event, EventUpdateAction $eventUpdate, UploadImageAction $uploadImage): RedirectResponse
+    public function update(EventUpdateRequest $request, int $id): RedirectResponse
     {
-        $eventUpdate($request, $event, $uploadImage);
+        $nameImg = $this->imageRequestService->upload($request->image);
+        $this->eventService->update($request->validated(), $id, $nameImg);
         return redirect(route('event.index'));
     }
 
-    public function destroy(Event $event, EventDestroyAction $eventDestroy, DestroyImageAction $destroyImage): RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
-        $eventDestroy($event, $destroyImage);
+        $event = $this->eventService->one($id);
+        $this->imageRequestService->delete($event->image);
+        $this->eventService->destroy($id);
         return redirect(route('event.index'));
     }
 }
