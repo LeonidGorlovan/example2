@@ -8,9 +8,15 @@ use LaravelIdea\Helper\App\Models\_IH_Venue_C;
 
 class VenueService
 {
-    public function all(): Collection|array
+    public function all(string|null $select = null): Collection|array
     {
-        return Venue::query()->get();
+        $venue = Venue::query();
+
+        if(!empty($select)) {
+            $venue = $venue->selectRaw($select);
+        }
+
+        return $venue->get();
     }
 
     public function one($id): _IH_Venue_C|Venue|array|null
